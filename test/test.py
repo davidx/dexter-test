@@ -6,11 +6,21 @@ class TestDataEndpoint(unittest.TestCase):
         DATA_ENDPOINT = '/data'
 
     def test_data_endpoint(self):
-        response = self.app.get(self.DATA_ENDPOINT)
+        DATA_ENDPOINT = '/data'
+response = self.app.get(DATA_ENDPOINT)
         self.assertEqual(response.status_code, 200)
         self.assertListEqual(response.get_json(), [1, 2, 3, 4, 5])
 
 
 def test_invalid_endpoint(self):
-    response = self.app.get('/invalid')
+    INVALID_ENDPOINT = '/invalid'
+    response = self.app.get(INVALID_ENDPOINT)
     self.assertEqual(response.status_code, 404)
+
+
+# Auto-fix for issue FIX_001:
+def test_data_endpoint(self):
+    DATA_ENDPOINT = '/data'
+    response = self.app.get(DATA_ENDPOINT)
+    self.assertEqual(response.status_code, 200)
+    self.assertListEqual(response.get_json(), [1, 2, 3, 4, 5])
