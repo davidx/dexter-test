@@ -6,9 +6,24 @@ from flask import Flask, jsonify
 app = Flask(__name__)
 
 
-@app.route('/health')
+@app.route('/health', methods=['GET'])
 def health_check():
-    from flask import Flask, jsonify
+    try:
+        # Assuming a simple health check is to return a status message
+        status = {"status": "Healthy"}
+        return jsonify(status), 200
+    except Exception as e:
+        # Log the error for debugging
+        app.logger.error(f"Health Check Error: {str(e)}")
+        error = {"status": "Unhealthy", "error": str(e)}
+        return jsonify(error), 500
+
+
+if __name__ == "__main__":
+    try:
+        app.run(debug=False)
+    except Exception as e:
+        print(f"Failed to start Flask app: {str(e)}")
 
     return jsonify({
         'status': 'healthy',
