@@ -47,3 +47,10 @@ try:
 except Exception as e:
     app.logger.error(f'Error occurred: {e}')
     return jsonify({'error': 'An error occurred'}), 500
+
+
+def test_health_check_endpoint(self):
+    response = self.app.get('/health')
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response.get_json(), {
+                     'status': 'healthy', 'message': 'Service is up and running'})
