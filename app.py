@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 @app.route('/health')
 def health_check():
-    from flask import jsonify
+    from flask import Flask, jsonify
 
     return jsonify({
         'status': 'healthy',
