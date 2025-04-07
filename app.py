@@ -1,3 +1,6 @@
+from sqlite3 import Error
+from werkzeug.security import generate_password_hash
+from flask import Flask, request, jsonify
 import sqlite3
 import unittest
 import app
@@ -96,3 +99,39 @@ def test_database_operation(self):
     response = self.app.get('/database_operation')
     self.assertEqual(response.status_code, 200)
     # Add more assertions based on the expected behavior of the function
+
+
+app = Flask(__name__)
+
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    conn = None
+    try:
+        data = request.get_json()
+        if not data or 'username' not in data or 'password' not in data:
+            return jsonify({'error': 'Invalid request'}), 400
+
+        username = data['username']
+        password = generate_password_hash(data['password'])
+
+        if not username or not password:
+            return jsonify({'error': 'Username or password cannot be empty'}), 400
+
+        query = "INSERT INTO users (username, password) VALUES (?, ?)"
+        conn = sqlite3.connect('example.db')
+        cursor = conn.cursor()
+        cursor.execute(query, (username, password))
+        conn.commit()
+        return jsonify({'message': 'User added successfully'}), 200
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'Username already exists'}), 400
+    except sqlite3.Error as e:
+        app.logger.error(f'Database error: {e}')
+        return jsonify({'error': 'Database error occurred'}), 500
+    except Exception as e:
+        app.logger.error(f'Error occurred: {e}')
+        return jsonify({'error': 'An error occurred'}), 500
+    finally:
+        if conn:
+            conn.close()
