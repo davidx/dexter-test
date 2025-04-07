@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
 def database_operation():
     try:
-        # database operation
+        raise NotImplementedError('This function is not yet implemented')
     except Exception as e:
         app.logger.error(f'Error occurred: {e}')
         return jsonify({'error': 'An error occurred'}), 500
