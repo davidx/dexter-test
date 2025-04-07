@@ -1,8 +1,38 @@
 import sqlite3
 import unittest
 import app
-from flask import jsonify
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, abort
+
+app = Flask(__name__)
+
+
+@app.route('/api/data', methods=['GET'])
+def get_data():
+    try:
+        # Simulate data
+        data = {"key": "value"}
+
+        if not data:
+            abort(404, description="Data not found")
+
+        return jsonify(data), 200
+
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+
+
+@app.errorhandler(404)
+def resource_not_found(e):
+    return jsonify(error=str(e)), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return jsonify(error=str(e)), 500
+
+
+if __name__ == '__main__':
+    app.run(debug=False)
 
 app = Flask(__name__)
 
