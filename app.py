@@ -62,3 +62,11 @@ def test_database_operation(self):
     response = self.app.get('/database_operation')
     self.assertEqual(response.status_code, 200)
     # Add more assertions based on the expected behavior of the function
+
+
+def test_add_user_endpoint(self):
+    response = self.app.post(
+        '/add_user', json={'name': 'test', 'email': 'test@example.com'})
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response.get_json(), {
+                     'message': 'User added successfully'})
