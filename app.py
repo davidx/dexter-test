@@ -1,8 +1,39 @@
 import sqlite3
 import unittest
 import app
-from flask import jsonify
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, abort
+
+app = Flask(__name__)
+
+
+@app.route('/api/data', methods=['GET'])
+def get_data():
+    try:
+        data = request.args.get('data')
+        if not data:
+            abort(400, description="Bad Request: Missing 'data' parameter.")
+        return jsonify({'data': data}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({'error': str(error)}), 400
+
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'error': 'Not found'}), 404
+
+
+@app.errorhandler(500)
+def server_error(error):
+    return jsonify({'error': 'Internal server error'}), 500
+
+
+if __name__ == '__main__':
+    app.run(debug=False)
 
 app = Flask(__name__)
 
