@@ -1,3 +1,5 @@
+from werkzeug.exceptions import BadRequest, InternalServerError
+from flask import Flask, request, jsonify
 import sqlite3
 import unittest
 import app
@@ -96,3 +98,56 @@ def test_database_operation(self):
     response = self.app.get('/database_operation')
     self.assertEqual(response.status_code, 200)
     # Add more assertions based on the expected behavior of the function
+
+
+app = Flask(__name__)
+
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+
+        if not username or not password:
+            raise BadRequest('Username and password are required fields')
+
+        # Assuming we have a function to add user to the database
+        # This function should handle any database errors and raise an appropriate exception if necessary
+        add_user_to_db(username, password)
+
+        return jsonify({'message': 'User added successfully'}), 200
+
+    except BadRequest as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': 'An unexpected error occurred'}), 500
+
+
+class TestAddUser(unittest.TestCase):
+    def setUp(self):
+        self.app = app.test_client()
+
+    def test_add_user(self):
+        response = self.app.post(
+            '/add_user', json={'username': 'test', 'password': 'test'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {
+                         'message': 'User added successfully'})
+
+    def test_add_user_without_username(self):
+        response = self.app.post('/add_user', json={'password': 'test'})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(), {
+                         'error': 'Username and password are required fields'})
+
+    def test_add_user_without_password(self):
+        response = self.app.post('/add_user', json={'username': 'test'})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(), {
+                         'error': 'Username and password are required fields'})
+
+
+if __name__ == '__main__':
+    unittest.main()
