@@ -8,22 +8,22 @@ import (
 
 func main() {
 	// These Println statements should be detected by Dexter
-	fmt.Println("Starting application...")
-	fmt.Println("Initializing components")
+	log.Println("Starting application...")
+	log.Println("Initializing components")
 	
 	err := initialize()
 	if err != nil {
-		fmt.Println("Error during initialization:", err)
+		log.Println("Error during initialization:", err)
 		os.Exit(1)
 	}
 
-	fmt.Println("Application running successfully")
+	log.Println("Application running successfully")
 }
 
 func initialize() error {
 	// More Println statements
-	fmt.Println("Setting up database connection")
-	fmt.Println("Loading configuration")
+	log.Println("Setting up database connection")
+	log.Println("Loading configuration")
 	
 	// Use proper logging for comparison
 	log.Println("This is using the standard logger")
