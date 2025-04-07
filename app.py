@@ -36,3 +36,9 @@ class TestDataEndpoint(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+try:
+    # database operation
+except Exception as e:
+    app.logger.error(f'Error occurred: {e}')
+    return jsonify({'error': 'An error occurred'}), 500
