@@ -46,6 +46,8 @@ if __name__ == '__main__':
 def database_operation():
     try:
         # database operation
+        # db_operation = 'Implement the actual database operation here'
+        # return db_operation
     except Exception as e:
         app.logger.error(f'Error occurred: {e}')
         return jsonify({'error': 'An error occurred'}), 500
