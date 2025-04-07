@@ -1,3 +1,4 @@
+import sqlite3
 import unittest
 import app
 from flask import jsonify
@@ -43,12 +44,30 @@ if __name__ == '__main__':
     unittest.main()
 
 
+app = Flask(__name__)
+
+
+@app.route('/database_operation', methods=['GET'])
 def database_operation():
+    conn = None
     try:
-        # database operation
+        conn = sqlite3.connect('example.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM example_table')
+        result = cursor.fetchall()
+        if result:
+            return jsonify(result), 200
+        else:
+            return jsonify({'message': 'No data found'}), 404
+    except sqlite3.Error as e:
+        app.logger.error(f'Database error: {e}')
+        return jsonify({'error': 'Database error occurred'}), 500
     except Exception as e:
         app.logger.error(f'Error occurred: {e}')
         return jsonify({'error': 'An error occurred'}), 500
+    finally:
+        if conn:
+            conn.close()
 
 
 def test_health_check_endpoint(self):
