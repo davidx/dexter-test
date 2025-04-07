@@ -17,3 +17,8 @@ if __name__ == '__main__':
 
 // TODO: Improvement needed - Redundant import statement
 // The 'Flask' and 'jsonify' modules are imported twice. This is unnecessary and can lead to confusion.
+
+
+@app.route('/data')
+def data():
+    return jsonify([1, 2, 3, 4, 5])
