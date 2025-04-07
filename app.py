@@ -271,3 +271,23 @@ def endpoint():
         return jsonify({'message': 'Success'}), 200
     except SomeException as e:
         return jsonify({'error': 'Error occurred', 'details': str(e)}), 500
+
+# DEXTER SUGGESTED CHANGE
+# The following change was suggested by Dexter but the target code wasn't found.
+# Original code:
+# password = 'admin123'
+
+# Suggested replacement:
+# password = os.environ.get('PASSWORD')
+
+# Issue ID: SEC-001 - Hardcoded Credentials
+
+# DEXTER SUGGESTED CHANGE
+# The following change was suggested by Dexter but the target code wasn't found.
+# Original code:
+# for i in range(len(items)): print(items[i])
+
+# Suggested replacement:
+# for item in items: print(item)
+
+# Issue ID: PERF-001 - Inefficient Loop
