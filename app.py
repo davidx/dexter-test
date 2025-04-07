@@ -1,3 +1,6 @@
+from werkzeug.exceptions import BadRequest
+from flask.testing import FlaskClient
+from flask import Flask, request, jsonify
 from flask import Flask
 import logging
 import sqlite3
@@ -102,3 +105,55 @@ def test_database_operation(self):
     response = self.app.get('/database_operation')
     self.assertEqual(response.status_code, 200)
     # Add more assertions based on the expected behavior of the function
+
+
+app = Flask(__name__)
+
+
+class User:
+    def __init__(self, username, email):
+        self.username = username
+        self.email = email
+
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    if not request.json or 'username' not in request.json or 'email' not in request.json:
+        raise BadRequest('Missing username or email')
+    user = User(request.json['username'], request.json['email'])
+    return jsonify({'message': 'User added successfully'}), 200
+
+
+class TestEndpoints(unittest.TestCase):
+    def setUp(self):
+        self.app = app.test_client()
+
+    def test_add_user_endpoint(self):
+        valid_user = {'username': 'test', 'email': 'test@example.com'}
+        response = self.app.post('/add_user', json=valid_user)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {
+                         'message': 'User added successfully'})
+
+        invalid_user_missing_email = {'username': 'test'}
+        response = self.app.post('/add_user', json=invalid_user_missing_email)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(), {
+                         'message': 'Bad Request', 'error': 'Missing username or email'})
+
+        invalid_user_missing_username = {'email': 'test@example.com'}
+        response = self.app.post(
+            '/add_user', json=invalid_user_missing_username)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(), {
+                         'message': 'Bad Request', 'error': 'Missing username or email'})
+
+        invalid_user_missing_both = {}
+        response = self.app.post('/add_user', json=invalid_user_missing_both)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(), {
+                         'message': 'Bad Request', 'error': 'Missing username or email'})
+
+
+if __name__ == '__main__':
+    unittest.main()
