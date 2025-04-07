@@ -1,3 +1,7 @@
+from cassandra import ConsistencyLevel
+from cassandra.auth import PlainTextAuthProvider
+from cassandra.cluster import Cluster
+from flask import Flask, request, jsonify
 from flask import Flask
 import logging
 import sqlite3
@@ -102,3 +106,49 @@ def test_database_operation(self):
     response = self.app.get('/database_operation')
     self.assertEqual(response.status_code, 200)
     # Add more assertions based on the expected behavior of the function
+
+
+app = Flask(__name__)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Cassandra connection setup
+auth_provider = PlainTextAuthProvider(username='username', password='password')
+cluster = Cluster(['127.0.0.1'], auth_provider=auth_provider)
+session = cluster.connect()
+
+# Prepare statement for better performance
+insert_user = session.prepare("""
+    INSERT INTO users (username, email) VALUES (?, ?)
+""")
+insert_user.consistency_level = ConsistencyLevel.QUORUM
+
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    data = request.get_json()
+
+    # Check if data is None
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    # Check if username and email are provided
+    if 'username' not in data or 'email' not in data:
+        return jsonify({'error': 'Missing username or email'}), 400
+
+    # Check if username and email are not empty
+    if not data['username'] or not data['email']:
+        return jsonify({'error': 'Username or email cannot be empty'}), 400
+
+    try:
+        session.execute(insert_user, (data['username'], data['email']))
+        return jsonify({'message': 'User added successfully'}), 200
+    except Exception as e:
+        logger.error(f'Error occurred: {e}')
+        return jsonify({'error': 'An error occurred'}), 500
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
