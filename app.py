@@ -1,3 +1,7 @@
+from cassandra import NoHostAvailable
+from cassandra.auth import PlainTextAuthProvider
+from cassandra.cluster import Cluster
+from flask import Flask, request, jsonify
 import sqlite3
 import unittest
 import app
@@ -96,3 +100,42 @@ def test_database_operation(self):
     response = self.app.get('/database_operation')
     self.assertEqual(response.status_code, 200)
     # Add more assertions based on the expected behavior of the function
+
+
+app = Flask(__name__)
+
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    username = data.get('username')
+    email = data.get('email')
+
+    if not username or not email:
+        return jsonify({'error': 'Username or email missing'}), 400
+
+    auth_provider = PlainTextAuthProvider(
+        username='cassandra', password='cassandra')
+    try:
+        cluster = Cluster(['127.0.0.1'], auth_provider=auth_provider)
+        session = cluster.connect()
+    except NoHostAvailable as e:
+        app.logger.error(f'No host available: {e}')
+        return jsonify({'error': 'Database connection failed'}), 500
+
+    try:
+        session.execute(
+            "INSERT INTO users (username, email) VALUES (%s, %s)", (username, email))
+    except Exception as e:
+        app.logger.error(f'Error occurred while inserting data: {e}')
+        return jsonify({'error': 'Failed to add user'}), 500
+
+    return jsonify({'message': 'User added successfully'}), 200
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
