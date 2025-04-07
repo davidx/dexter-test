@@ -21,7 +21,10 @@ if __name__ == '__main__':
 
 @app.route('/data')
 def data():
+    try:
     return jsonify([1, 2, 3, 4, 5])
+except Exception as e:
+    return jsonify({'error': str(e)}), 500
 
 import unittest
 import app
