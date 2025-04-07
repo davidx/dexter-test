@@ -1,3 +1,5 @@
+from flask import Flask
+import logging
 import sqlite3
 import unittest
 import app
@@ -20,20 +22,24 @@ def health_check():
         return jsonify(error), 500
 
 
-if __name__ == "__main__":
-    try:
-        app.run(debug=False)
-    except Exception as e:
-        print(f"Failed to start Flask app: {str(e)}")
+app = Flask(__name__)
 
-    return jsonify({
-        'status': 'healthy',
-        'message': 'Service is up and running'
-    })
+
+@app.route('/')
+def home():
+    return "Hello, World!"
+
+
+def main():
+    try:
+        app.run(host='0.0.0.0', port=8080)
+    except Exception as e:
+        logging.error(
+            f"Failed to start Flask app due to {str(e)}", exc_info=True)
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=False)
+    main()
 
 
 // TODO: Improvement needed - Redundant import statement
