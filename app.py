@@ -75,10 +75,10 @@ def database_operation():
             return jsonify({'message': 'No data found'}), 404
     except sqlite3.Error as e:
         app.logger.error(f'Database error occurred: {str(e)}')
-        return jsonify({'error': 'Database error occurred'}), 500
+        return jsonify({'error': 'Database error occurred', 'details': str(e)}), 500
     except Exception as e:
         app.logger.error(f'An unexpected error occurred: {str(e)}')
-        return jsonify({'error': 'An internal server error occurred'}), 500
+        return jsonify({'error': 'An internal server error occurred', 'details': str(e)}), 500
 
 
 def test_health_check_endpoint(self):
@@ -151,10 +151,18 @@ def add_user():
                 return jsonify({'error': f"Missing required field: {field}"}), 400
 
         # Create ScyllaDB connection
-        auth_provider = PlainTextAuthProvider(
-            username='your_username', password='your_password')
-        cluster = Cluster(['scylladb_host'], auth_provider=auth_provider)
-        session = cluster.connect('your_keyspace')
+        import os
+
+
+scylladb_username = os.environ.get('SCYLLADB_USERNAME')
+scylladb_password = os.environ.get('SCYLLADB_PASSWORD')
+scylladb_host = os.environ.get('SCYLLADB_HOST')
+scylladb_keyspace = os.environ.get('SCYLLADB_KEYSPACE')
+
+auth_provider = PlainTextAuthProvider(
+    username=scylladb_username, password=scylladb_password)
+cluster = Cluster([scylladb_host], auth_provider=auth_provider)
+session = cluster.connect(scylladb_keyspace)
 
         # Insert user into ScyllaDB table
         query = "INSERT INTO users (id, name, email) VALUES (?, ?, ?)"
@@ -210,17 +218,19 @@ class TestAddUserEndpoint(unittest.TestCase):
         self.app = app.test_client()
 
     def test_add_user_success(self):
-        # Mock the ScyllaDB session and successful user insertion
-        with unittest.mock.patch('cassandra.cluster.Cluster') as mock_cluster:
-            mock_session = mock_cluster.return_value.connect.return_value
-            mock_session.execute.return_value = None
+    # Mock the ScyllaDB session and successful user insertion
+    with unittest.mock.patch('cassandra.cluster.Cluster') as mock_cluster:
+        mock_session = mock_cluster.return_value.connect.return_value
+        mock_session.execute.return_value = None
 
-            user_data = {
-                'id': 1,
-                'name': 'John Doe',
-                'email': 'john@example.com'
-            }
-            response = self.app.post('/add_user', json=user_data)
+        user_data = {
+            'id': 1,
+            'name': 'John Doe',
+            'email': 'john@example.com'
+        }
+        response = self.app.post('/add_user', json=user_data)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.get_json(), {'message': 'User added successfully'})
             self.assertEqual(response.status_code, 201)
             self.assertEqual(response.get_json(), {
                              'message': 'User added successfully'})
@@ -249,3 +259,15 @@ class TestAddUserEndpoint(unittest.TestCase):
             self.assertEqual(response.status_code, 500)
             self.assertEqual(response.get_json(), {
                              'error': 'An error occurred while adding the user'})
+
+
+# Use a consistent response format across all endpoints
+# Example: Always return JSON responses with appropriate status codes
+
+@app.route('/endpoint')
+def endpoint():
+    try:
+        # Endpoint logic
+        return jsonify({'message': 'Success'}), 200
+    except SomeException as e:
+        return jsonify({'error': 'Error occurred', 'details': str(e)}), 500
