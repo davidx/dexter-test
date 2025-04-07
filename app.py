@@ -56,3 +56,9 @@ def test_health_check_endpoint(self):
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response.get_json(), {
                      'status': 'healthy', 'message': 'Service is up and running'})
+
+
+def test_database_operation(self):
+    response = self.app.get('/database_operation')
+    self.assertEqual(response.status_code, 200)
+    # Add more assertions based on the expected behavior of the function
