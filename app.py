@@ -1,3 +1,6 @@
+from werkzeug.exceptions import BadRequest
+from sqlite3 import Error
+from flask import Flask, request, jsonify
 import sqlite3
 import unittest
 import app
@@ -96,3 +99,33 @@ def test_database_operation(self):
     response = self.app.get('/database_operation')
     self.assertEqual(response.status_code, 200)
     # Add more assertions based on the expected behavior of the function
+
+
+app = Flask(__name__)
+
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    try:
+        data = request.get_json()
+        if not data:
+            raise BadRequest('Invalid request: No data provided')
+        username = data.get('username')
+        email = data.get('email')
+        if not username or not email:
+            raise BadRequest('Invalid request: Missing username or email')
+        with sqlite3.connect('example.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                'INSERT INTO users (username, email) VALUES (?, ?)', (username, email))
+            conn.commit()
+        return jsonify({'message': 'User added successfully'}), 201
+    except BadRequest as e:
+        app.logger.error(f'Bad request: {e}')
+        return jsonify({'error': str(e)}), 400
+    except sqlite3.Error as e:
+        app.logger.error(f'Database error: {e}')
+        return jsonify({'error': 'Database error occurred'}), 500
+    except Exception as e:
+        app.logger.error(f'Unexpected error occurred: {e}')
+        return jsonify({'error': 'An unexpected error occurred'}), 500
