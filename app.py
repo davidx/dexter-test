@@ -1,3 +1,7 @@
+from http import HTTPStatus
+from flask import Flask, request, jsonify
+from cassandra.auth import PlainTextAuthProvider
+from cassandra.cluster import Cluster
 from flask import Flask
 import logging
 import sqlite3
@@ -102,3 +106,47 @@ def test_database_operation(self):
     response = self.app.get('/database_operation')
     self.assertEqual(response.status_code, 200)
     # Add more assertions based on the expected behavior of the function
+
+
+app = Flask(__name__)
+
+
+def create_cassandra_session():
+    auth_provider = PlainTextAuthProvider(
+        username='cassandra', password='cassandra')
+    cluster = Cluster(['127.0.0.1'], auth_provider=auth_provider)
+    session = cluster.connect()
+    session.set_keyspace('test')
+    return session
+
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    user_data = request.get_json()
+
+    if not user_data:
+        return jsonify({'error': 'No input data provided'}), HTTPStatus.BAD_REQUEST
+
+    required_fields = ['id', 'name', 'email']
+
+    if not all(field in user_data for field in required_fields):
+        return jsonify({'error': 'Missing required field'}), HTTPStatus.BAD_REQUEST
+
+    session = create_cassandra_session()
+
+    try:
+        session.execute(
+            "INSERT INTO users (id, name, email) VALUES (%s, %s, %s)",
+            (user_data['id'], user_data['name'], user_data['email'])
+        )
+    except Exception as e:
+        app.logger.error(f'Error occurred: {e}')
+        return jsonify({'error': 'An error occurred while adding the user'}), HTTPStatus.INTERNAL_SERVER_ERROR
+    finally:
+        session.shutdown()
+
+    return jsonify({'message': 'User added successfully'}), HTTPStatus.OK
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
