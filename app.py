@@ -1,3 +1,5 @@
+from werkzeug.exceptions import BadRequest
+from flask import Flask, request, jsonify, abort
 import unittest
 import app
 from flask import jsonify
@@ -62,3 +64,23 @@ def test_database_operation(self):
     response = self.app.get('/database_operation')
     self.assertEqual(response.status_code, 200)
     # Add more assertions based on the expected behavior of the function
+
+
+app = Flask(__name__)
+
+
+@app.route('/data', methods=['POST'])
+def data():
+    try:
+        data = request.get_json(force=True)
+    except BadRequest:
+        abort(400, description="Invalid JSON format")
+
+    if not isinstance(data, list) or not all(isinstance(i, int) for i in data):
+        abort(400, description="Invalid input: Expected a list of integers")
+
+    return jsonify(data), 200
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
