@@ -1,3 +1,5 @@
+from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, request, jsonify
 import sqlite3
 import unittest
 import app
@@ -96,3 +98,68 @@ def test_database_operation(self):
     response = self.app.get('/database_operation')
     self.assertEqual(response.status_code, 200)
     # Add more assertions based on the expected behavior of the function
+
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+db = SQLAlchemy(app)
+
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    data = request.get_json()
+    username = data.get('username')
+    email = data.get('email')
+
+    if not username or not email:
+        return jsonify({'message': 'Invalid input'}), 400
+
+    user = User.query.filter_by(username=username).first()
+    if user:
+        return jsonify({'message': 'User already exists'}), 400
+
+    user = User(username=username, email=email)
+    db.session.add(user)
+    db.session.commit()
+
+    return jsonify({'message': 'User added successfully'}), 201
+
+
+class TestUserCreation(unittest.TestCase):
+    def setUp(self):
+        self.app = app.test_client()
+        db.create_all()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+
+    def test_add_user(self):
+        response = self.app.post(
+            '/add_user', json={'username': 'test', 'email': 'test@example.com'})
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.get_json(), {
+                         'message': 'User added successfully'})
+
+        # Test for missing username or email
+        response = self.app.post(
+            '/add_user', json={'username': '', 'email': 'test@example.com'})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(), {'message': 'Invalid input'})
+
+        # Test for existing user
+        response = self.app.post(
+            '/add_user', json={'username': 'test', 'email': 'test@example.com'})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(), {
+                         'message': 'User already exists'})
+
+
+if __name__ == '__main__':
+    unittest.main()
