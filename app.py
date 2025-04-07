@@ -1,10 +1,54 @@
-from flask import Flask
 import logging
-import sqlite3
-import unittest
-import app
-from flask import jsonify
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
+from flask.logging import create_logger
+from sqlite3 import Error, connect
+
+app = Flask(__name__)
+logger = create_logger(app)
+
+
+def create_connection(db_file):
+    """ create a database connection to a SQLite database """
+    conn = None
+    try:
+        conn = connect(db_file)
+        logger.info("Successfully connected to SQLite")
+    except Error as e:
+        logger.error(f"Error {e} occurred")
+
+    return conn
+
+
+@app.route('/api/data', methods=['GET'])
+def get_data():
+    conn = create_connection("database.db")
+    if conn is not None:
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM data")
+
+            rows = cur.fetchall()
+
+            return jsonify(rows), 200
+        except Error as e:
+            logger.error(f"Error {e} occurred")
+            return jsonify({"error": "Server error"}), 500
+    else:
+        return jsonify({"error": "Connection error"}), 500
+
+
+@app.errorhandler(404)
+def resource_not_found(e):
+    return jsonify(error=str(e)), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return jsonify(error=str(e)), 500
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 app = Flask(__name__)
 
