@@ -62,3 +62,10 @@ def test_database_operation(self):
     response = self.app.get('/database_operation')
     self.assertEqual(response.status_code, 200)
     # Add more assertions based on the expected behavior of the function
+
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    data = request.get_json()
+    # Add your database operation here to add user in scylladb table
+    return jsonify({'message': 'User added successfully'}), 200
