@@ -13,3 +13,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=False)
+
+
+// TODO: Improvement needed - Redundant import statement
+// The 'Flask' and 'jsonify' modules are imported twice. This is unnecessary and can lead to confusion.
