@@ -62,3 +62,18 @@ def test_database_operation(self):
     response = self.app.get('/database_operation')
     self.assertEqual(response.status_code, 200)
     # Add more assertions based on the expected behavior of the function
+
+
+@app.route('/users', methods=['POST'])
+ def add_user():
+      data = request.get_json()
+       if 'username' not in data or 'email' not in data:
+            return jsonify({'error': 'Missing username or email'}), 400
+        # Connect to ScyllaDB and add user
+        # This is a placeholder, replace with actual database operation
+        try:
+            # database operation
+        except Exception as e:
+            app.logger.error(f'Error occurred: {e}')
+            return jsonify({'error': 'An error occurred'}), 500
+        return jsonify({'message': 'User added successfully'}), 201
