@@ -1,10 +1,69 @@
-from flask import Flask
+from flask import Flask, jsonify, request, abort
 import logging
 import sqlite3
-import unittest
-import app
-from flask import jsonify
-from flask import Flask, jsonify
+from sqlite3 import Error
+
+app = Flask(__name__)
+
+
+def create_connection():
+    conn = None
+    try:
+        conn = sqlite3.connect(':memory:')  # creates a database in RAM
+        return conn
+    except Error as e:
+        logging.error(f"Error: {str(e)}")
+        return None
+
+
+@app.route('/api/v1/resources/books/all', methods=['GET'])
+def api_all():
+    conn = create_connection()
+    if conn is None:
+        abort(500)
+    else:
+        cur = conn.cursor()
+        all_books = cur.execute('SELECT * FROM books;').fetchall()
+        return jsonify(all_books)
+
+
+@app.route('/api/v1/resources/books', methods=['GET'])
+def api_filter():
+    query_parameters = request.args
+
+    id = query_parameters.get('id')
+    published = query_parameters.get('published')
+    author = query_parameters.get('author')
+
+    query = "SELECT * FROM books WHERE"
+    to_filter = []
+
+    if id:
+        query += ' id=? AND'
+        to_filter.append(id)
+    if published:
+        query += ' published=? AND'
+        to_filter.append(published)
+    if author:
+        query += ' author=? AND'
+        to_filter.append(author)
+    if not (id or published or author):
+        abort(400)
+
+    query = query[:-4] + ';'
+
+    conn = create_connection()
+    if conn is None:
+        abort(500)
+    else:
+        cur = conn.cursor()
+        results = cur.execute(query, to_filter).fetchall()
+        return jsonify(results)
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    app.run(debug=True)
 
 app = Flask(__name__)
 
