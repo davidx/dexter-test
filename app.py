@@ -1,12 +1,12 @@
-from http import HTTPStatus
-from flask import Flask, request, jsonify
-from cassandra.auth import PlainTextAuthProvider
-from cassandra.cluster import Cluster
-from flask import Flask, jsonify
 import logging
 import sqlite3
 import unittest
+from http import HTTPStatus
+
 import app
+from cassandra.auth import PlainTextAuthProvider
+from cassandra.cluster import Cluster
+from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
@@ -22,9 +22,6 @@ def health_check():
         app.logger.error(f"Health Check Error: {str(e)}")
         error = {"status": "Unhealthy", "error": str(e)}
         return jsonify(error), 500
-
-
-app = Flask(__name__)
 
 
 @app.route('/')
