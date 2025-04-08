@@ -48,3 +48,6 @@ def main():
         logging.error(
             f"Failed to start Flask app due to {str(e)}", exc_info=True)
 
+if __name__ == '__main__':
+    main()
+
