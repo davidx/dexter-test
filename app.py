@@ -52,7 +52,32 @@ def data():
     return jsonify([1, 2, 3, 4, 5])
 
 
-@app.route('/users', methods=['POST'])
+# Add these routes
+
+@app.route('/auth/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    
+    if not data or not all(k in data for k in ('username', 'password')):
+        return jsonify({'error': 'Missing username or password'}), 400
+        
+    user = User.query.filter_by(username=data['username']).first()
+    
+    if not user or not user.check_password(data['password']):
+        return jsonify({'error': 'Invalid username or password'}), 401
+    
+    # In a real app, you would generate a JWT token here
+    # token = create_access_token(identity=user.id)
+    # return jsonify({'token': token, 'user': user.to_dict()}), 200
+    
+    # Simplified version
+    return jsonify({'message': 'Login successful', 'user': user.to_dict()}), 200
+
+@app.route('/auth/logout', methods=['POST'])
+def logout():
+    # In a real app with JWT, you might blacklist the token
+    # or rely on the client to discard it
+    return jsonify({'message': 'Logout successful'}), 200
 def create_user():
     data = request.get_json()
     
