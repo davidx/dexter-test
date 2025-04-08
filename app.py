@@ -204,7 +204,7 @@ def delete_user(user_id):
     return jsonify({'message': 'User deleted successfully'})
 
 
-import unittest
+# Move to the top of the file with other imports
 
 
 class TestDataEndpoint(unittest.TestCase):
