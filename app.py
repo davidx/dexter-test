@@ -1,11 +1,5 @@
 import logging
-import sqlite3
-import unittest
-from http import HTTPStatus
 
-import app
-from cassandra.auth import PlainTextAuthProvider
-from cassandra.cluster import Cluster
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
