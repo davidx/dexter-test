@@ -28,6 +28,9 @@ def data():
     return jsonify([1, 2, 3, 4, 5])
 
 
+import unittest
+
+
 class TestDataEndpoint(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()
