@@ -150,14 +150,7 @@ def get_users():
     except Exception as e:
         app.logger.error(f"Pagination error: {str(e)}")
         return jsonify({'error': 'Failed to retrieve users'}), 500
-    users = pagination.items
-    
-    return jsonify({
-        'users': [user.to_dict() for user in users],
-        'total': pagination.total,
-        'pages': pagination.pages,
-        'current_page': page
-    })
+# Remove this duplicate code block as it's unreachable
 
 
 @app.route('/users/<int:user_id>', methods=['GET'])
