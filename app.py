@@ -28,6 +28,70 @@ def data():
     return jsonify([1, 2, 3, 4, 5])
 
 
+@app.route('/users', methods=['POST'])
+def create_user():
+    data = request.get_json()
+    
+    if not data or not all(k in data for k in ('username', 'email', 'password')):
+        return jsonify({'error': 'Missing required fields'}), 400
+        
+    if User.query.filter_by(username=data['username']).first():
+        return jsonify({'error': 'Username already exists'}), 400
+        
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({'error': 'Email already exists'}), 400
+    
+    user = User(username=data['username'], email=data['email'])
+    user.set_password(data['password'])
+    
+    db.session.add(user)
+    db.session.commit()
+    
+    return jsonify(user.to_dict()), 201
+
+
+@app.route('/users', methods=['GET'])
+def get_users():
+    users = User.query.all()
+    return jsonify([user.to_dict() for user in users])
+
+
+@app.route('/users/<int:user_id>', methods=['GET'])
+def get_user(user_id):
+    user = User.query.get_or_404(user_id)
+    return jsonify(user.to_dict())
+
+
+@app.route('/users/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
+    user = User.query.get_or_404(user_id)
+    data = request.get_json()
+    
+    if 'username' in data:
+        if User.query.filter_by(username=data['username']).first() and data['username'] != user.username:
+            return jsonify({'error': 'Username already exists'}), 400
+        user.username = data['username']
+        
+    if 'email' in data:
+        if User.query.filter_by(email=data['email']).first() and data['email'] != user.email:
+            return jsonify({'error': 'Email already exists'}), 400
+        user.email = data['email']
+        
+    if 'password' in data:
+        user.set_password(data['password'])
+    
+    db.session.commit()
+    return jsonify(user.to_dict())
+
+
+@app.route('/users/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({'message': 'User deleted successfully'})
+
+
 import unittest
 
 
