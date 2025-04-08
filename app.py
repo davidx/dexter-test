@@ -193,8 +193,13 @@ def update_user(user_id):
     if 'password' in data:
         user.set_password(data['password'])
     
-    db.session.commit()
-    return jsonify(user.to_dict())
+    try:
+        db.session.commit()
+        return jsonify(user.to_dict())
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Update user error: {str(e)}")
+        return jsonify({'error': 'Failed to update user'}), 500
 
 
 @app.route('/users/<int:user_id>', methods=['DELETE'])
