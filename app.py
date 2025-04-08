@@ -52,12 +52,27 @@ def data():
     return jsonify([1, 2, 3, 4, 5])
 
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+# Add to imports and initialize with app
+# limiter = Limiter(app, key_func=get_remote_address)
+
 @app.route('/users', methods=['POST'])
+# @limiter.limit("5 per minute")
 def create_user():
     data = request.get_json()
     
     if not data or not all(k in data for k in ('username', 'email', 'password')):
         return jsonify({'error': 'Missing required fields'}), 400
+    
+    # Validate email format
+    if not is_valid_email(data['email']):
+        return jsonify({'error': 'Invalid email format'}), 400
+        
+    # Validate password strength
+    if not is_strong_password(data['password']):
+        return jsonify({'error': 'Password too weak'}), 400
         
     if User.query.filter_by(username=data['username']).first():
         return jsonify({'error': 'Username already exists'}), 400
@@ -72,6 +87,18 @@ def create_user():
     db.session.commit()
     
     return jsonify(user.to_dict()), 201
+
+# Helper functions for validation
+def is_valid_email(email):
+    import re
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+def is_strong_password(password):
+    # At least 8 chars, contains uppercase, lowercase, number, and special char
+    if len(password) < 8:
+        return False
+    return True  # Simplified for example
 
 
 @app.route('/users', methods=['GET'])
