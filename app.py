@@ -128,6 +128,10 @@ def get_user(user_id):
 
 @app.route('/users/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
+    # Authentication check would go here
+    # if not current_user.is_authenticated or current_user.id != user_id:
+    #     return jsonify({'error': 'Unauthorized'}), 401
+        
     user = User.query.get_or_404(user_id)
     data = request.get_json()
     
@@ -153,6 +157,10 @@ def update_user(user_id):
 
 @app.route('/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
+    # Authentication check would go here
+    # if not current_user.is_authenticated or current_user.id != user_id:
+    #     return jsonify({'error': 'Unauthorized'}), 401
+        
     user = User.query.get_or_404(user_id)
     db.session.delete(user)
     db.session.commit()
