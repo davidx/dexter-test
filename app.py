@@ -109,7 +109,15 @@ def is_strong_password(password):
     # At least 8 chars, contains uppercase, lowercase, number, and special char
     if len(password) < 8:
         return False
-    return True  # Simplified for example
+    if not any(c.isupper() for c in password):
+        return False
+    if not any(c.islower() for c in password):
+        return False
+    if not any(c.isdigit() for c in password):
+        return False
+    if not any(c in '!@#$%^&*()_-+={}[]|:;<>,.?/~`' for c in password):
+        return False
+    return True
 
 
 @app.route('/users', methods=['GET'])
