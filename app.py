@@ -29,6 +29,7 @@ def create_app(config=None):
     
     return flask_app
 
+# Move this to the bottom of the file, just before the main() function
 app = create_app()
 
 
