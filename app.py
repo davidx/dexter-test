@@ -28,7 +28,7 @@ def data():
     return jsonify([1, 2, 3, 4, 5])
 
 
-import unittest
+# Move this import to the top of the file with other imports
 
 
 class TestDataEndpoint(unittest.TestCase):
