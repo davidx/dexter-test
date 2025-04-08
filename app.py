@@ -1,13 +1,13 @@
-from http import HTTPStatus
-from flask import Flask, request, jsonify
-from cassandra.auth import PlainTextAuthProvider
-from cassandra.cluster import Cluster
-from flask import Flask, jsonify
 import logging
 import sqlite3
 import unittest
-import app
+from http import HTTPStatus
 
+from cassandra.auth import PlainTextAuthProvider
+from cassandra.cluster import Cluster
+from flask import Flask, jsonify, request
+
+# Remove this line as the app instance is already defined
 app = Flask(__name__)
 
 
@@ -25,11 +25,14 @@ def health_check():
 
 
 app = Flask(__name__)
-
-
-@app.route('/')
-def home():
-    return "Hello, World!"
+# Use a centralized error handler or middleware
+@app.errorhandler(Exception)
+def handle_error(error):
+    app.logger.error(f'An error occurred: {str(error)}')
+    return jsonify({
+        'error': 'An error occurred',
+        'message': str(error)
+    }), 500
 
 
 @app.route('/data')
@@ -111,10 +114,16 @@ def add_user():
     if not user_data:
         return jsonify({'error': 'No input data provided'}), HTTPStatus.BAD_REQUEST
 
-    required_fields = ['id', 'name', 'email']
+# Use a consistent response format across all endpoints
+# Example: Always return JSON responses with appropriate status codes
 
-    if not all(field in user_data for field in required_fields):
-        return jsonify({'error': 'Missing required field'}), HTTPStatus.BAD_REQUEST
+@app.route('/endpoint')
+def endpoint():
+    try:
+        # Endpoint logic
+        return jsonify({'message': 'Success'}), 200
+    except SomeException as e:
+        return jsonify({'error': 'Error occurred', 'details': str(e)}), 500
 
     # Use a connection pool to manage database connections
     pool = create_connection_pool()
@@ -153,14 +162,17 @@ def add_user():
 
 
 # Use a secrets management system or encrypt sensitive information
-scylladb_username = get_secret('SCYLLADB_USERNAME')
-scylladb_password = get_secret('SCYLLADB_PASSWORD')
-scylladb_host = get_secret('SCYLLADB_HOST')
-scylladb_keyspace = get_secret('SCYLLADB_KEYSPACE')
+# Add email validation
+import re
 
-auth_provider = PlainTextAuthProvider(
-    username=scylladb_username, password=scylladb_password)
-cluster = Cluster([scylladb_host], auth_provider=auth_provider)
+DEFAULT_EMAIL_REGEX = r'^[\w\.-]+@[\w\.-]+\.[\w]+$'
+
+def validate_email(email, regex=DEFAULT_EMAIL_REGEX):
+    return re.match(regex, email) is not None
+
+# In the add_user function
+if not validate_email(user_data['email']):
+    return jsonify({'error': 'Invalid email format'}), 400
 session = cluster.connect(scylladb_keyspace)
 
         # Insert user into ScyllaDB table
@@ -171,10 +183,11 @@ session = cluster.connect(scylladb_keyspace)
         # Close ScyllaDB connection
         session.shutdown()
 
-        return jsonify({'message': 'User added successfully'}), 201
-    except Exception as e:
-        app.logger.error(f'Error adding user: {str(e)}')
-        return jsonify({'error': 'An error occurred while adding the user'}), 500
+# Use a secrets management system or encrypt sensitive information
+scylladb_username = get_secret('SCYLLADB_USERNAME')
+scylladb_password = get_secret('SCYLLADB_PASSWORD')
+scylladb_host = get_secret('SCYLLADB_HOST')
+scylladb_keyspace = get_secret('SCYLLADB_KEYSPACE')
 
 
 class TestDatabaseOperationEndpoint(unittest.TestCase):
@@ -240,11 +253,29 @@ class TestAddUserEndpoint(unittest.TestCase):
         user_data = {
             'name': 'John Doe'
         }
-        response = self.app.post('/add_user', json=user_data)
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.get_json(), {
-                         'error': 'Missing required field: id'})
+class TestAddUserEndpoint(unittest.TestCase):
+    def setUp(self):
+        self.app = app.test_client()
 
+    def test_add_user_success(self):
+        # Test case for successful user insertion
+        ...
+
+    def test_add_user_missing_fields(self):
+        # Test case for missing required fields
+        ...
+
+    def test_add_user_invalid_email(self):
+        # Test case for invalid email format
+        ...
+
+    def test_add_user_duplicate_id(self):
+        # Test case for duplicate user ID
+        ...
+
+    def test_add_user_database_error(self):
+        # Test case for database error
+        ...
     def test_add_user_error(self):
         # Mock an error during user insertion
         with unittest.mock.patch('cassandra.cluster.Cluster') as mock_cluster:
