@@ -23,6 +23,11 @@ def create_app(config=None):
     login_manager = LoginManager()
     login_manager.init_app(flask_app)
     
+    # Add CSRF protection
+    from flask_wtf.csrf import CSRFProtect
+    csrf = CSRFProtect()
+    csrf.init_app(flask_app)
+    
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
