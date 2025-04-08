@@ -8,7 +8,8 @@ db = SQLAlchemy()
 
 def create_app(config=None):
     flask_app = Flask(__name__)
-    flask_app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+    import os
+    flask_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///users.db')
     flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     flask_app.config['SECRET_KEY'] = 'your-secret-key-here'  # Should be loaded from environment variables in production
     
