@@ -193,6 +193,8 @@ def update_user(user_id):
         user.email = data['email']
         
     if 'password' in data:
+        if not is_strong_password(data['password']):
+            return jsonify({'error': 'Password too weak'}), 400
         user.set_password(data['password'])
     
     db.session.commit()
