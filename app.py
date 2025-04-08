@@ -70,7 +70,7 @@ from flask_limiter.util import get_remote_address
 limiter = Limiter(app, key_func=get_remote_address)
 
 @app.route('/users', methods=['POST'])
-# @limiter.limit("5 per minute")
+@limiter.limit("5 per minute")
 def create_user():
     data = request.get_json()
     
