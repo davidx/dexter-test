@@ -101,13 +101,20 @@ def create_user():
     
     return jsonify(user.to_dict()), 201
 
-# Helper functions for validation
+import logging
 import re
+
+from flask import Flask, jsonify, request
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import check_password_hash, generate_password_hash
 
 
 def is_valid_email(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return re.match(pattern, email) is not None
+
 
 def is_strong_password(password):
     # At least 8 chars, contains uppercase, lowercase, number, and special char
