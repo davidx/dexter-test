@@ -83,7 +83,30 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 
 # Initialize rate limiter
-limiter = Limiter(app, key_func=get_remote_address)
+limiter = Limiter(key_func=get_remote_address)
+
+def create_app(config=None):
+    flask_app = Flask(__name__)
+    import os
+    flask_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///users.db')
+    flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    flask_app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-for-testing-only')
+    
+    if config:
+        flask_app.config.update(config)
+        
+    db.init_app(flask_app)
+    limiter.init_app(flask_app)
+    
+    # Initialize Flask-Login
+    login_manager = LoginManager()
+    login_manager.init_app(flask_app)
+    
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+    
+    return flask_app
 
 @app.route('/users', methods=['POST'])
 @limiter.limit("5 per minute")
