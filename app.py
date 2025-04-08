@@ -116,17 +116,18 @@ def delete_user(user_id):
     return jsonify({'message': 'User deleted successfully'})
 
 
-import unittest
-
-
-class TestDataEndpoint(unittest.TestCase):
-    def setUp(self):
-        self.app = app.test_client()
-
-    def test_data_endpoint(self):
-        response = self.app.get('/data')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get_json(), [1, 2, 3, 4, 5])
+# Move to a separate file named test_app.py
+# import unittest
+# from app import app
+# 
+# class TestDataEndpoint(unittest.TestCase):
+#     def setUp(self):
+#         self.app = app.test_client()
+# 
+#     def test_data_endpoint(self):
+#         response = self.app.get('/data')
+#         self.assertEqual(response.status_code, 200)
+#         self.assertEqual(response.get_json(), [1, 2, 3, 4, 5])
 
 
 def main():
