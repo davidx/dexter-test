@@ -10,11 +10,16 @@ def create_app(config=None):
     flask_app = Flask(__name__)
     flask_app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
     flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    flask_app.config['SECRET_KEY'] = 'your-secret-key-here'  # Add a secret key
     
     if config:
         flask_app.config.update(config)
         
     db.init_app(flask_app)
+    
+    # Initialize CSRF protection
+    from flask_wtf.csrf import CSRFProtect
+    csrf = CSRFProtect(flask_app)
     
     return flask_app
 
