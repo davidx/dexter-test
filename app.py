@@ -188,6 +188,8 @@ def update_user(user_id):
         user.username = data['username']
         
     if 'email' in data:
+        if not is_valid_email(data['email']):
+            return jsonify({'error': 'Invalid email format'}), 400
         if User.query.filter_by(email=data['email']).first() and data['email'] != user.email:
             return jsonify({'error': 'Email already exists'}), 400
         user.email = data['email']
