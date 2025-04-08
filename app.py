@@ -158,7 +158,7 @@ def get_users():
             'current_page': page
         })
     except Exception as e:
-        app.logger.error(f"Pagination error: {str(e)}")
+        logging.error(f"Pagination error: {str(e)}")
         return jsonify({'error': 'Failed to retrieve users'}), 500
     # This duplicate code should be removed as it's already handled in the try block
 
