@@ -1,12 +1,12 @@
-from http import HTTPStatus
-from flask import Flask, request, jsonify
-from cassandra.auth import PlainTextAuthProvider
-from cassandra.cluster import Cluster
-from flask import Flask, jsonify
 import logging
 import sqlite3
 import unittest
+from http import HTTPStatus
+
 import app
+from cassandra.auth import PlainTextAuthProvider
+from cassandra.cluster import Cluster
+from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
@@ -222,6 +222,18 @@ class TestAddUserEndpoint(unittest.TestCase):
 
     def test_add_user_missing_fields(self):
         # Test case for missing required fields
+        ...
+
+    def test_add_user_invalid_email(self):
+        # Test case for invalid email format
+        ...
+
+    def test_add_user_duplicate_id(self):
+        # Test case for duplicate user ID
+        ...
+
+    def test_add_user_database_error(self):
+        # Test case for database error
         ...
 
     def test_add_user_invalid_email(self):
