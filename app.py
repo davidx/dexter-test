@@ -67,7 +67,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 # Initialize rate limiter
-limiter = Limiter(app, key_func=get_remote_address)
+# Move this initialization to after app creation but before route definitions
 
 @app.route('/users', methods=['POST'])
 @limiter.limit("5 per minute")
