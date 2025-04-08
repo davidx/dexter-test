@@ -18,6 +18,15 @@ def create_app(config=None):
         
     db.init_app(flask_app)
     
+    # Initialize Flask-Login
+    from flask_login import LoginManager
+    login_manager = LoginManager()
+    login_manager.init_app(flask_app)
+    
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+    
     return flask_app
 
 app = create_app()
