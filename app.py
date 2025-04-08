@@ -64,7 +64,8 @@ def data():
 
 
 from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+
+# Move this import to the top of the file with other imports
 
 # Initialize rate limiter
 limiter = Limiter(app, key_func=get_remote_address)
