@@ -58,8 +58,7 @@ def health_check():
         status = {"status": "Healthy"}
         return jsonify(status), 200
     except Exception as e:
-        # Log the error for debugging
-        app.logger.error(f"Health Check Error: {str(e)}")
+        logging.error(f"Health Check Error: {str(e)}")
         error = {"status": "Unhealthy", "error": str(e)}
         return jsonify(error), 500
 
