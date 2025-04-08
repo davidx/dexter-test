@@ -63,7 +63,7 @@ def data():
     return jsonify([1, 2, 3, 4, 5])
 
 
-from flask_limiter import Limiter
+# Move this import to the top of the file with other imports
 from flask_limiter.util import get_remote_address
 
 # Initialize rate limiter
