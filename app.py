@@ -100,8 +100,10 @@ def create_user():
     return jsonify(user.to_dict()), 201
 
 # Helper functions for validation
+import re
+
+
 def is_valid_email(email):
-    import re
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return re.match(pattern, email) is not None
 
