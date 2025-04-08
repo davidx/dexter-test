@@ -65,13 +65,8 @@ def data():
     return jsonify([1, 2, 3, 4, 5])
 
 
-import logging
-
-from flask import Flask, jsonify, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import check_password_hash, generate_password_hash
 
 # Initialize rate limiter
 limiter = Limiter(app, key_func=get_remote_address)
