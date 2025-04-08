@@ -50,6 +50,19 @@ class User(db.Model):
             'username': self.username,
             'email': self.email
         }
+        
+    # Flask-Login integration
+    def is_authenticated(self):
+        return True
+        
+    def is_active(self):
+        return True
+        
+    def is_anonymous(self):
+        return False
+        
+    def get_id(self):
+        return str(self.id)
 
 @app.route('/health', methods=['GET'])
 def health_check():
