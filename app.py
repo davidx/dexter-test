@@ -116,7 +116,7 @@ def create_user():
     return jsonify(user.to_dict()), 201
 
 # Helper functions for validation
-import re
+# This import should be moved to the top of the file
 
 
 def is_valid_email(email):
