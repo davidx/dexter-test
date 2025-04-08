@@ -11,7 +11,12 @@ def create_app(config=None):
     import os
     flask_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///users.db')
     flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    flask_app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-for-testing-only')
+    flask_app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+    if not flask_app.config['SECRET_KEY']:
+        if flask_app.debug:
+            flask_app.config['SECRET_KEY'] = 'dev-key-for-testing-only'
+        else:
+            raise RuntimeError('SECRET_KEY environment variable must be set in production')
     
     if config:
         flask_app.config.update(config)
