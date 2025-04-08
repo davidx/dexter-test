@@ -91,6 +91,9 @@ def update_user(user_id):
     user = User.query.get_or_404(user_id)
     data = request.get_json()
     
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    
     if 'username' in data:
         if User.query.filter_by(username=data['username']).first() and data['username'] != user.username:
             return jsonify({'error': 'Username already exists'}), 400
