@@ -103,8 +103,21 @@ def is_strong_password(password):
 
 @app.route('/users', methods=['GET'])
 def get_users():
-    users = User.query.all()
-    return jsonify([user.to_dict() for user in users])
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    # Limit maximum per_page to prevent abuse
+    per_page = min(per_page, 100)
+    
+    pagination = User.query.paginate(page=page, per_page=per_page, error_out=False)
+    users = pagination.items
+    
+    return jsonify({
+        'users': [user.to_dict() for user in users],
+        'total': pagination.total,
+        'pages': pagination.pages,
+        'current_page': page
+    })
 
 
 @app.route('/users/<int:user_id>', methods=['GET'])
