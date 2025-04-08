@@ -2,7 +2,11 @@ import logging
 
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import check_password_hash, generate_password_hash
+
+# Later in create_app function, add: csrf = CSRFProtect(flask_app)
+
 
 db = SQLAlchemy()
 
