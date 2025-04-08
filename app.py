@@ -120,7 +120,19 @@ def get_users():
     # Limit maximum per_page to prevent abuse
     per_page = min(per_page, 100)
     
-    pagination = User.query.paginate(page=page, per_page=per_page, error_out=False)
+    try:
+        pagination = User.query.paginate(page=page, per_page=per_page, error_out=False)
+        users = pagination.items
+        
+        return jsonify({
+            'users': [user.to_dict() for user in users],
+            'total': pagination.total,
+            'pages': pagination.pages,
+            'current_page': page
+        })
+    except Exception as e:
+        app.logger.error(f"Pagination error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve users'}), 500
     users = pagination.items
     
     return jsonify({
