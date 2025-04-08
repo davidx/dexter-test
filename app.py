@@ -7,16 +7,16 @@ from werkzeug.security import check_password_hash, generate_password_hash
 db = SQLAlchemy()
 
 def create_app(config=None):
-    app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    flask_app = Flask(__name__)
+    flask_app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+    flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     if config:
-        app.config.update(config)
+        flask_app.config.update(config)
         
-    db.init_app(app)
+    db.init_app(flask_app)
     
-    return app
+    return flask_app
 
 app = create_app()
 
