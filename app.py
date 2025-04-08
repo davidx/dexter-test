@@ -83,8 +83,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 
 # Initialize rate limiter
-limiter = Limiter(key_func=get_remote_address)
-limiter.init_app(app)
+limiter = Limiter(app, key_func=get_remote_address)
 
 @app.route('/users', methods=['POST'])
 @limiter.limit("5 per minute")
