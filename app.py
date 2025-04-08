@@ -180,6 +180,7 @@ def update_user(user_id):
     # Implement proper authentication
     # Move this import to the top of the file with other imports
     
+    from flask_login import current_user
     if not current_user.is_authenticated or current_user.id != user_id:
         return jsonify({'error': 'Unauthorized'}), 401
         
@@ -211,6 +212,7 @@ def delete_user(user_id):
     # Implement proper authentication
     # Move this import to the top of the file with other imports
     
+    from flask_login import current_user
     if not current_user.is_authenticated or current_user.id != user_id:
         return jsonify({'error': 'Unauthorized'}), 401
         
