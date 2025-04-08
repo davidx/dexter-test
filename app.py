@@ -162,7 +162,7 @@ def get_user(user_id):
 @app.route('/users/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
     # Implement proper authentication
-    from flask_login import current_user, login_required
+    # Move this import to the top of the file with other imports
     
     if not current_user.is_authenticated or current_user.id != user_id:
         return jsonify({'error': 'Unauthorized'}), 401
@@ -193,7 +193,7 @@ def update_user(user_id):
 @app.route('/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
     # Implement proper authentication
-    from flask_login import current_user, login_required
+    # Move this import to the top of the file with other imports
     
     if not current_user.is_authenticated or current_user.id != user_id:
         return jsonify({'error': 'Unauthorized'}), 401
