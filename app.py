@@ -2,11 +2,10 @@ from http import HTTPStatus
 from flask import Flask, request, jsonify
 from cassandra.auth import PlainTextAuthProvider
 from cassandra.cluster import Cluster
-from flask import Flask, jsonify
 import logging
 import sqlite3
 import unittest
-import app
+import os
 
 app = Flask(__name__)
 
@@ -22,9 +21,6 @@ def health_check():
         app.logger.error(f"Health Check Error: {str(e)}")
         error = {"status": "Unhealthy", "error": str(e)}
         return jsonify(error), 500
-
-
-app = Flask(__name__)
 
 
 @app.route('/')
@@ -94,15 +90,17 @@ def test_database_operation(self):
     # Add more assertions based on the expected behavior of the function
 
 
-app = Flask(__name__)
-
-
-def create_cassandra_session():
-    auth_provider = PlainTextAuthProvider(
-        username='cassandra', password='cassandra')
-    cluster = Cluster(['127.0.0.1'], auth_provider=auth_provider)
-    session = cluster.connect()
-    session.set_keyspace('test')
+def create_cassandra_connection():
+    # Get database credentials from environment
+    scylladb_username = os.environ.get('SCYLLADB_USERNAME', 'cassandra')
+    scylladb_password = os.environ.get('SCYLLADB_PASSWORD', 'cassandra')
+    scylladb_host = os.environ.get('SCYLLADB_HOST', '127.0.0.1')
+    scylladb_keyspace = os.environ.get('SCYLLADB_KEYSPACE', 'test')
+    
+    # Connect to database
+    auth_provider = PlainTextAuthProvider(username=scylladb_username, password=scylladb_password)
+    cluster = Cluster([scylladb_host], auth_provider=auth_provider)
+    session = cluster.connect(scylladb_keyspace)
     return session
 
 
@@ -112,135 +110,3 @@ def add_user():
     user_data = request.get_json()
     
     # Check if data was provided
-    if not user_data:
-        return jsonify({'error': 'No input data provided'}), HTTPStatus.BAD_REQUEST
-    
-    # Validate required fields
-    required_fields = ['id', 'name', 'email']
-    if not all(field in user_data for field in required_fields):
-        missing_field = next((field for field in required_fields if field not in user_data), None)
-        return jsonify({'error': f'Missing required field: {missing_field}'}), HTTPStatus.BAD_REQUEST
-    
-    try:
-        # Create database connection using environment variables for security
-        import os
-        
-        # Get database credentials from environment
-        scylladb_username = os.environ.get('SCYLLADB_USERNAME', 'cassandra')
-        scylladb_password = os.environ.get('SCYLLADB_PASSWORD', 'cassandra')
-        scylladb_host = os.environ.get('SCYLLADB_HOST', '127.0.0.1')
-        scylladb_keyspace = os.environ.get('SCYLLADB_KEYSPACE', 'test')
-        
-        # Connect to database
-        auth_provider = PlainTextAuthProvider(username=scylladb_username, password=scylladb_password)
-        cluster = Cluster([scylladb_host], auth_provider=auth_provider)
-        session = cluster.connect(scylladb_keyspace)
-        
-        # Insert user into database
-        query = "INSERT INTO users (id, name, email) VALUES (?, ?, ?)"
-        session.execute(query, (user_data['id'], user_data['name'], user_data['email']))
-        
-        # Return success response
-        return jsonify({'message': 'User added successfully'}), HTTPStatus.CREATED
-    except Exception as e:
-        # Log error and return error response
-        app.logger.error(f'Error adding user: {str(e)}')
-        return jsonify({'error': 'An error occurred while adding the user'}), HTTPStatus.INTERNAL_SERVER_ERROR
-    finally:
-        # Ensure database connection is closed even if an error occurs
-        if 'session' in locals():
-            session.shutdown()
-
-
-class TestDatabaseOperationEndpoint(unittest.TestCase):
-    def setUp(self):
-        self.app = app.test_client()
-
-    def test_database_operation_success(self):
-        # Mock the database response
-        with unittest.mock.patch('sqlite3.connect') as mock_connect:
-            mock_cursor = mock_connect.return_value.cursor.return_value
-            mock_cursor.fetchall.return_value = [(1, 'John'), (2, 'Jane')]
-
-            response = self.app.get('/database_operation')
-            self.assertEqual(response.status_code, 200)
-            self.assertEqual(response.get_json(), [(1, 'John'), (2, 'Jane')])
-
-    def test_database_operation_no_data(self):
-        # Mock the database response with no data
-        with unittest.mock.patch('sqlite3.connect') as mock_connect:
-            mock_cursor = mock_connect.return_value.cursor.return_value
-            mock_cursor.fetchall.return_value = []
-
-            response = self.app.get('/database_operation')
-            self.assertEqual(response.status_code, 404)
-            self.assertEqual(response.get_json(), {'message': 'No data found'})
-
-    def test_database_operation_error(self):
-        # Mock a database error
-        with unittest.mock.patch('sqlite3.connect') as mock_connect:
-            mock_connect.side_effect = sqlite3.Error('Database error')
-
-            response = self.app.get('/database_operation')
-            self.assertEqual(response.status_code, 500)
-            self.assertEqual(response.get_json(), {
-                             'error': 'Database error occurred'})
-
-
-class TestAddUserEndpoint(unittest.TestCase):
-    def setUp(self):
-        self.app = app.test_client()
-
-    def test_add_user_success(self):
-    # Mock the ScyllaDB session and successful user insertion
-    with unittest.mock.patch('cassandra.cluster.Cluster') as mock_cluster:
-        mock_session = mock_cluster.return_value.connect.return_value
-        mock_session.execute.return_value = None
-
-        user_data = {
-            'id': 1,
-            'name': 'John Doe',
-            'email': 'john@example.com'
-        }
-        response = self.app.post('/add_user', json=user_data)
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.get_json(), {'message': 'User added successfully'})
-            self.assertEqual(response.status_code, 201)
-            self.assertEqual(response.get_json(), {
-                             'message': 'User added successfully'})
-
-    def test_add_user_missing_fields(self):
-        user_data = {
-            'name': 'John Doe'
-        }
-        response = self.app.post('/add_user', json=user_data)
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.get_json(), {
-                         'error': 'Missing required field: id'})
-
-    def test_add_user_error(self):
-        # Mock an error during user insertion
-        with unittest.mock.patch('cassandra.cluster.Cluster') as mock_cluster:
-            mock_session = mock_cluster.return_value.connect.return_value
-            mock_session.execute.side_effect = Exception('Database error')
-
-            user_data = {
-                'id': 1,
-                'name': 'John Doe',
-                'email': 'john@example.com'
-            }
-            response = self.app.post('/add_user', json=user_data)
-            self.assertEqual(response.status_code, 500)
-            self.assertEqual(response.get_json(), {
-                             'error': 'An error occurred while adding the user'})
-
-
-# Use a consistent response format across all endpoints
-# Example: Always return JSON responses with appropriate status codes
-
-@app.route('/endpoint')
-def endpoint():
-    try:
-        # Endpoint logic
-        return jsonify({'message': 'Success'}), 200
-    except SomeException as e:
