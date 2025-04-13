@@ -8,22 +8,20 @@ import sqlite3
 import unittest
 import app
 
-app = Flask(__name__)
+app = Flask(__name__)  # Arr, settin' sail with me Flask ship!
 
 
-@app.route('/health', methods=['GET'])
-def health_check():
-    try:
+@app.route('/health', methods=['GET'])  # Ahoy! This be the health check route, ye scallywags!
+def health_check():  # This function be checkin' if our vessel be seaworthy!
+    try:  # Tryin' to navigate these treacherous waters, we are!
         # Assuming a simple health check is to return a status message
-        status = {"status": "Healthy"}
-        return jsonify(status), 200
-    except Exception as e:
+        status = {"status": "Healthy"}  # Craftin' a message in a bottle that says we be shipshape!
+        return jsonify(status), 200  # Send the bottle back to port with a 200 signal fire!
+    except Exception as e:  # Blimey! We've hit rough seas!
         # Log the error for debugging
-        app.logger.error(f"Health Check Error: {str(e)}")
-        error = {"status": "Unhealthy", "error": str(e)}
-        return jsonify(error), 500
-
-
+        app.logger.error(f"Health Check Error: {str(e)}")  # Scribblin' in the captain's log about our misfortune!
+        error = {"status": "Unhealthy", "error": str(e)}  # Preparin' the bad news for the mainland!
+        return jsonify(error), 500  # Firin' the distress cannon, 500 leagues of trouble we be in!
 app = Flask(__name__)
 
 
