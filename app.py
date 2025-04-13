@@ -98,12 +98,31 @@ app = Flask(__name__)
 
 
 def create_cassandra_session():
-    auth_provider = PlainTextAuthProvider(
-        username='cassandra', password='cassandra')
-    cluster = Cluster(['127.0.0.1'], auth_provider=auth_provider)
-    session = cluster.connect()
-    session.set_keyspace('test')
-    return session
+def connect_to_scylladb(host=None, username=None, password=None, keyspace=None):
+    """
+    Establish a connection to ScyllaDB/Cassandra.
+    
+    Args:
+        host (str): Database host address, defaults to '127.0.0.1' if None
+        username (str): Database username, defaults to 'cassandra' if None
+        password (str): Database password, defaults to 'cassandra' if None
+        keyspace (str): Database keyspace, defaults to 'test' if None
+        
+    Returns:
+        tuple: (cluster, session) - The database cluster and session objects
+    """
+    # Use default values if parameters are not provided
+    host = host or '127.0.0.1'
+    username = username or 'cassandra'
+    password = password or 'cassandra'
+    keyspace = keyspace or 'test'
+    
+    # Connect to database
+    auth_provider = PlainTextAuthProvider(username=username, password=password)
+    cluster = Cluster([host], auth_provider=auth_provider)
+    session = cluster.connect(keyspace)
+    
+    return cluster, session
 
 
 @app.route('/add_user', methods=['POST'])
@@ -131,10 +150,13 @@ def add_user():
         scylladb_host = os.environ.get('SCYLLADB_HOST', '127.0.0.1')
         scylladb_keyspace = os.environ.get('SCYLLADB_KEYSPACE', 'test')
         
-        # Connect to database
-        auth_provider = PlainTextAuthProvider(username=scylladb_username, password=scylladb_password)
-        cluster = Cluster([scylladb_host], auth_provider=auth_provider)
-        session = cluster.connect(scylladb_keyspace)
+        # Connect to database using the shared function
+        cluster, session = connect_to_scylladb(
+            host=scylladb_host,
+            username=scylladb_username,
+            password=scylladb_password,
+            keyspace=scylladb_keyspace
+        )
         
         # Insert user into database
         query = "INSERT INTO users (id, name, email) VALUES (?, ?, ?)"
@@ -150,6 +172,8 @@ def add_user():
         # Ensure database connection is closed even if an error occurs
         if 'session' in locals():
             session.shutdown()
+        if 'cluster' in locals():
+            cluster.shutdown()
 
 
 class TestDatabaseOperationEndpoint(unittest.TestCase):
