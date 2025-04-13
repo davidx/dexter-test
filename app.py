@@ -1,1 +1,1 @@
-# Flask app is already initialized at the top of the file
+# Arr matey! The mighty Flask vessel be already rigged an' ready fer sailin' at the top o' this here file! Shiver me timbers!
