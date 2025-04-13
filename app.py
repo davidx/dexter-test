@@ -12,13 +12,9 @@ app = Flask(__name__)
 def health_check():
     try:
         # Assuming a simple health check is to return a status message
-        status = {"status": "Healthy"}
-        return jsonify(status), 200
+        return create_response({"status": "Healthy"})
     except Exception as e:
-        # Log the error for debugging
-        app.logger.error(f"Health Check Error: {str(e)}")
-        error = {"status": "Unhealthy", "error": str(e)}
-        return jsonify(error), 500
+        return error_response(f"Health Check Error: {str(e)}")
 
 
 @app.route('/')
