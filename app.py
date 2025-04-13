@@ -24,9 +24,6 @@ def health_check():
         return jsonify(error), 500
 
 
-app = Flask(__name__)
-
-
 @app.route('/')
 def home():
     return "Hello, World!"
@@ -45,6 +42,17 @@ class TestDataEndpoint(unittest.TestCase):
         response = self.app.get('/data')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json(), [1, 2, 3, 4, 5])
+
+    def test_health_check_endpoint(self):
+        response = self.app.get('/health')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {
+                         'status': 'healthy', 'message': 'Service is up and running'})
+
+    def test_database_operation(self):
+        response = self.app.get('/database_operation')
+        self.assertEqual(response.status_code, 200)
+        # Add more assertions based on the expected behavior of the function
 
 
 def main():
@@ -79,22 +87,6 @@ def database_operation():
     except Exception as e:
         app.logger.error(f'An unexpected error occurred: {str(e)}')
         return jsonify({'error': 'An internal server error occurred', 'details': str(e)}), 500
-
-
-def test_health_check_endpoint(self):
-    response = self.app.get('/health')
-    self.assertEqual(response.status_code, 200)
-    self.assertEqual(response.get_json(), {
-                     'status': 'healthy', 'message': 'Service is up and running'})
-
-
-def test_database_operation(self):
-    response = self.app.get('/database_operation')
-    self.assertEqual(response.status_code, 200)
-    # Add more assertions based on the expected behavior of the function
-
-
-app = Flask(__name__)
 
 
 def create_cassandra_session():
@@ -192,22 +184,19 @@ class TestAddUserEndpoint(unittest.TestCase):
         self.app = app.test_client()
 
     def test_add_user_success(self):
-    # Mock the ScyllaDB session and successful user insertion
-    with unittest.mock.patch('cassandra.cluster.Cluster') as mock_cluster:
-        mock_session = mock_cluster.return_value.connect.return_value
-        mock_session.execute.return_value = None
+        # Mock the ScyllaDB session and successful user insertion
+        with unittest.mock.patch('cassandra.cluster.Cluster') as mock_cluster:
+            mock_session = mock_cluster.return_value.connect.return_value
+            mock_session.execute.return_value = None
 
-        user_data = {
-            'id': 1,
-            'name': 'John Doe',
-            'email': 'john@example.com'
-        }
-        response = self.app.post('/add_user', json=user_data)
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.get_json(), {'message': 'User added successfully'})
+            user_data = {
+                'id': 1,
+                'name': 'John Doe',
+                'email': 'john@example.com'
+            }
+            response = self.app.post('/add_user', json=user_data)
             self.assertEqual(response.status_code, 201)
-            self.assertEqual(response.get_json(), {
-                             'message': 'User added successfully'})
+            self.assertEqual(response.get_json(), {'message': 'User added successfully'})
 
     def test_add_user_missing_fields(self):
         user_data = {
@@ -243,4 +232,5 @@ def endpoint():
     try:
         # Endpoint logic
         return jsonify({'message': 'Success'}), 200
-    except SomeException as e:
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
