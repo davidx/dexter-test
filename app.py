@@ -1,8 +1,29 @@
 om http import HTTPStatus
 from flask import Flask, request, jsonify
-from cassandra.auth import PlainTextAuthProvider
-from cassandra.cluster import Cluster
-from flask import Flask, jsonify
+import logging
+import sqlite3
+import unittest
+import app
+
+app = Flask(__name__)
+
+def get_scylla_connection(host='127.0.0.1', username='cassandra', password='cassandra', keyspace='test'):
+    """
+    Creates and returns a ScyllaDB/Cassandra connection
+    
+    Args:
+        host: Database host address
+        username: Database username
+        password: Database password
+        keyspace: Database keyspace to use
+    
+    Returns:
+        A connected database session
+    """
+    auth_provider = PlainTextAuthProvider(username=username, password=password)
+    cluster = Cluster([host], auth_provider=auth_provider)
+    session = cluster.connect(keyspace)
+    return session
 import logging
 import sqlite3
 import unittest
