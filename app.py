@@ -1,3 +1,4 @@
+
 def create_cassandra_session():
     username = os.environ.get('CASSANDRA_USERNAME', 'cassandra')
     password = os.environ.get('CASSANDRA_PASSWORD', 'cassandra')
@@ -9,3 +10,4 @@ def create_cassandra_session():
     session = cluster.connect()
     session.set_keyspace(keyspace)
     return session
+
