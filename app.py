@@ -1,1 +1,1 @@
-# Flask app is already initialized at the top of the file
+# Flask app be already initialized at th' top o' the file, yarrr! Shiver me timbers!
