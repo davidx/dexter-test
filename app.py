@@ -98,11 +98,24 @@ app = Flask(__name__)
 
 
 def create_cassandra_session():
-    auth_provider = PlainTextAuthProvider(
-        username='cassandra', password='cassandra')
-    cluster = Cluster(['127.0.0.1'], auth_provider=auth_provider)
-    session = cluster.connect()
-    session.set_keyspace('test')
+def get_scylladb_connection(keyspace='test'):
+    """Create and return a ScyllaDB/Cassandra database connection.
+    
+    Args:
+        keyspace: The keyspace to connect to (default: 'test')
+        
+    Returns:
+        A ScyllaDB session object connected to the specified keyspace
+    """
+    import os
+    # Get database credentials from environment variables with fallbacks
+    username = os.environ.get('SCYLLADB_USERNAME', 'cassandra')
+    password = os.environ.get('SCYLLADB_PASSWORD', 'cassandra')
+    host = os.environ.get('SCYLLADB_HOST', '127.0.0.1')
+    
+    auth_provider = PlainTextAuthProvider(username=username, password=password)
+    cluster = Cluster([host], auth_provider=auth_provider)
+    session = cluster.connect(keyspace)
     return session
 
 
