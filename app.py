@@ -132,34 +132,44 @@ class BaseTestCase(unittest.TestCase):
 
 
 class TestDatabaseOperationEndpoint(BaseTestCase):
+    def _mock_db_response(self, return_value=None, side_effect=None):
+        """Helper method to mock database connections"""
+        patcher = unittest.mock.patch('sqlite3.connect')
+        mock_connect = patcher.start()
+        self.addCleanup(patcher.stop)
+        
+        if side_effect:
+            mock_connect.side_effect = side_effect
+            return mock_connect
+            
+        mock_cursor = mock_connect.return_value.cursor.return_value
+        mock_cursor.fetchall.return_value = return_value or []
+        return mock_connect
+        
     def test_database_operation_success(self):
         # Mock the database response
-        with unittest.mock.patch('sqlite3.connect') as mock_connect:
-            mock_cursor = mock_connect.return_value.cursor.return_value
-            mock_cursor.fetchall.return_value = [(1, 'John'), (2, 'Jane')]
-
-            response = self.app.get('/database_operation')
-            self.assertEqual(response.status_code, 200)
-            self.assertEqual(response.get_json(), [(1, 'John'), (2, 'Jane')])
+        self._mock_db_response([(1, 'John'), (2, 'Jane')])
+        
+        response = self.app.get('/database_operation')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), [(1, 'John'), (2, 'Jane')])
+        
     def test_database_operation_no_data(self):
         # Mock the database response with no data
-        with unittest.mock.patch('sqlite3.connect') as mock_connect:
-            mock_cursor = mock_connect.return_value.cursor.return_value
-            mock_cursor.fetchall.return_value = []
-
-            response = self.app.get('/database_operation')
-            self.assertEqual(response.status_code, 404)
-            self.assertEqual(response.get_json(), {'message': 'No data found'})
+        self._mock_db_response([])
+        
+        response = self.app.get('/database_operation')
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.get_json(), {'message': 'No data found'})
 
     def test_database_operation_error(self):
         # Mock a database error
-        with unittest.mock.patch('sqlite3.connect') as mock_connect:
-            mock_connect.side_effect = sqlite3.Error('Database error')
-
-            response = self.app.get('/database_operation')
-            self.assertEqual(response.status_code, 500)
-            self.assertEqual(response.get_json(), {
-                             'error': 'Database error occurred'})
+        self._mock_db_response(side_effect=sqlite3.Error('Database error'))
+        
+        response = self.app.get('/database_operation')
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.get_json(), {
+                         'error': 'Database error occurred'})
 
 
 class TestAddUserEndpoint(BaseTestCase):
