@@ -1,4 +1,4 @@
-om http import HTTPStatus
+# Error in analysis
 from flask import Flask, request, jsonify
 from cassandra.auth import PlainTextAuthProvider
 from cassandra.cluster import Cluster
