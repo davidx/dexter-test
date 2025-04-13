@@ -221,13 +221,21 @@ class TestAddUserEndpoint(BaseTestCase):
                              'error': 'An error occurred while adding the user'})
 
 
-# Use a consistent response format across all endpoints
-# Example: Always return JSON responses with appropriate status codes
+# Utility functions for consistent response handling
+
+def create_response(data, status_code=200):
+    """Create a standardized API response"""
+    return jsonify(data), status_code
+
+def error_response(message, status_code=500):
+    """Create a standardized error response"""
+    app.logger.error(f"Error: {message}")
+    return create_response({"error": message}, status_code)
 
 @app.route('/endpoint')
 def endpoint():
     try:
         # Endpoint logic
-        return jsonify({'message': 'Success'}), 200
+        return create_response({'message': 'Success'})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return error_response(str(e))
