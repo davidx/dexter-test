@@ -177,9 +177,8 @@ class TestDatabaseOperationEndpoint(BaseTestCase):
                              'error': 'Database error occurred'})
 
 
-class TestAddUserEndpoint(unittest.TestCase):
-    def setUp(self):
-        self.app = app.test_client()
+class TestAddUserEndpoint(BaseTestCase):
+    # Inheriting setUp from BaseTestCase
 
     def test_add_user_success(self):
         # Mock the ScyllaDB session and successful user insertion
