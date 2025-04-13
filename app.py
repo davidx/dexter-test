@@ -1,4 +1,4 @@
-om http import HTTPStatus
+# No valid suggestion provided
 from flask import Flask, request, jsonify
 from cassandra.auth import PlainTextAuthProvider
 from cassandra.cluster import Cluster
