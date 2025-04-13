@@ -97,14 +97,21 @@ def test_database_operation(self):
 app = Flask(__name__)
 
 
-def create_cassandra_session():
-    auth_provider = PlainTextAuthProvider(
-        username='cassandra', password='cassandra')
-    cluster = Cluster(['127.0.0.1'], auth_provider=auth_provider)
-    session = cluster.connect()
-    session.set_keyspace('test')
+def get_db_connection():
+    """Create and return a ScyllaDB/Cassandra database connection using environment variables"""
+    import os
+    
+    # Get database credentials from environment
+    scylladb_username = os.environ.get('SCYLLADB_USERNAME', 'cassandra')
+    scylladb_password = os.environ.get('SCYLLADB_PASSWORD', 'cassandra')
+    scylladb_host = os.environ.get('SCYLLADB_HOST', '127.0.0.1')
+    scylladb_keyspace = os.environ.get('SCYLLADB_KEYSPACE', 'test')
+    
+    # Connect to database
+    auth_provider = PlainTextAuthProvider(username=scylladb_username, password=scylladb_password)
+    cluster = Cluster([scylladb_host], auth_provider=auth_provider)
+    session = cluster.connect(scylladb_keyspace)
     return session
-
 
 @app.route('/add_user', methods=['POST'])
 def add_user():
