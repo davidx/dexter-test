@@ -141,10 +141,12 @@ def add_user():
             session.shutdown()
 
 
-class TestDatabaseOperationEndpoint(unittest.TestCase):
+class BaseTestCase(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()
 
+
+class TestDatabaseOperationEndpoint(BaseTestCase):
     def test_database_operation_success(self):
         # Mock the database response
         with unittest.mock.patch('sqlite3.connect') as mock_connect:
@@ -154,7 +156,6 @@ class TestDatabaseOperationEndpoint(unittest.TestCase):
             response = self.app.get('/database_operation')
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.get_json(), [(1, 'John'), (2, 'Jane')])
-
     def test_database_operation_no_data(self):
         # Mock the database response with no data
         with unittest.mock.patch('sqlite3.connect') as mock_connect:
