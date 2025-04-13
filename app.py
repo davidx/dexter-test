@@ -107,19 +107,12 @@ def add_user():
         return jsonify({'error': f'Missing required field: {missing_field}'}), HTTPStatus.BAD_REQUEST
     
     try:
-        # Create database connection using environment variables for security
-        import os
+        # Get database connection
+        session = get_db_connection()
         
-        # Get database credentials from environment
-        scylladb_username = os.environ.get('SCYLLADB_USERNAME', 'cassandra')
-        scylladb_password = os.environ.get('SCYLLADB_PASSWORD', 'cassandra')
-        scylladb_host = os.environ.get('SCYLLADB_HOST', '127.0.0.1')
-        scylladb_keyspace = os.environ.get('SCYLLADB_KEYSPACE', 'test')
-        
-        # Connect to database
-        auth_provider = PlainTextAuthProvider(username=scylladb_username, password=scylladb_password)
-        cluster = Cluster([scylladb_host], auth_provider=auth_provider)
-        session = cluster.connect(scylladb_keyspace)
+        # Insert user into database
+        query = "INSERT INTO users (id, name, email) VALUES (?, ?, ?)"
+        session.execute(query, (user_data['id'], user_data['name'], user_data['email']))
         
         # Insert user into database
         query = "INSERT INTO users (id, name, email) VALUES (?, ?, ?)"
