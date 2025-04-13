@@ -114,10 +114,6 @@ def add_user():
         query = "INSERT INTO users (id, name, email) VALUES (?, ?, ?)"
         session.execute(query, (user_data['id'], user_data['name'], user_data['email']))
         
-        # Insert user into database
-        query = "INSERT INTO users (id, name, email) VALUES (?, ?, ?)"
-        session.execute(query, (user_data['id'], user_data['name'], user_data['email']))
-        
         # Return success response
         return jsonify({'message': 'User added successfully'}), HTTPStatus.CREATED
     except Exception as e:
