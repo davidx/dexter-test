@@ -108,74 +108,48 @@ def create_cassandra_session():
 
 @app.route('/add_user', methods=['POST'])
 def add_user():
+    # Get user data from request
     user_data = request.get_json()
-
+    
+    # Check if data was provided
     if not user_data:
         return jsonify({'error': 'No input data provided'}), HTTPStatus.BAD_REQUEST
-
+    
+    # Validate required fields
     required_fields = ['id', 'name', 'email']
-
     if not all(field in user_data for field in required_fields):
-        return jsonify({'error': 'Missing required field'}), HTTPStatus.BAD_REQUEST
-
-    session = create_cassandra_session()
-
+        missing_field = next((field for field in required_fields if field not in user_data), None)
+        return jsonify({'error': f'Missing required field: {missing_field}'}), HTTPStatus.BAD_REQUEST
+    
     try:
-        session.execute(
-            "INSERT INTO users (id, name, email) VALUES (%s, %s, %s)",
-            (user_data['id'], user_data['name'], user_data['email'])
-        )
+        # Create database connection using environment variables for security
+        import os
+        
+        # Get database credentials from environment
+        scylladb_username = os.environ.get('SCYLLADB_USERNAME', 'cassandra')
+        scylladb_password = os.environ.get('SCYLLADB_PASSWORD', 'cassandra')
+        scylladb_host = os.environ.get('SCYLLADB_HOST', '127.0.0.1')
+        scylladb_keyspace = os.environ.get('SCYLLADB_KEYSPACE', 'test')
+        
+        # Connect to database
+        auth_provider = PlainTextAuthProvider(username=scylladb_username, password=scylladb_password)
+        cluster = Cluster([scylladb_host], auth_provider=auth_provider)
+        session = cluster.connect(scylladb_keyspace)
+        
+        # Insert user into database
+        query = "INSERT INTO users (id, name, email) VALUES (?, ?, ?)"
+        session.execute(query, (user_data['id'], user_data['name'], user_data['email']))
+        
+        # Return success response
+        return jsonify({'message': 'User added successfully'}), HTTPStatus.CREATED
     except Exception as e:
-        app.logger.error(f'Error occurred: {e}')
+        # Log error and return error response
+        app.logger.error(f'Error adding user: {str(e)}')
         return jsonify({'error': 'An error occurred while adding the user'}), HTTPStatus.INTERNAL_SERVER_ERROR
     finally:
-        session.shutdown()
-
-    return jsonify({'message': 'User added successfully'}), HTTPStatus.OK
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
-
-
-@app.route('/add_user', methods=['POST'])
-def add_user():
-    try:
-        # Get user data from request
-        user_data = request.get_json()
-
-        # Validate required fields
-        required_fields = ['id', 'name', 'email']
-        for field in required_fields:
-            if field not in user_data:
-                return jsonify({'error': f"Missing required field: {field}"}), 400
-
-        # Create ScyllaDB connection
-        import os
-
-
-scylladb_username = os.environ.get('SCYLLADB_USERNAME')
-scylladb_password = os.environ.get('SCYLLADB_PASSWORD')
-scylladb_host = os.environ.get('SCYLLADB_HOST')
-scylladb_keyspace = os.environ.get('SCYLLADB_KEYSPACE')
-
-auth_provider = PlainTextAuthProvider(
-    username=scylladb_username, password=scylladb_password)
-cluster = Cluster([scylladb_host], auth_provider=auth_provider)
-session = cluster.connect(scylladb_keyspace)
-
-        # Insert user into ScyllaDB table
-        query = "INSERT INTO users (id, name, email) VALUES (?, ?, ?)"
-        session.execute(
-            query, (user_data['id'], user_data['name'], user_data['email']))
-
-        # Close ScyllaDB connection
-        session.shutdown()
-
-        return jsonify({'message': 'User added successfully'}), 201
-    except Exception as e:
-        app.logger.error(f'Error adding user: {str(e)}')
-        return jsonify({'error': 'An error occurred while adding the user'}), 500
+        # Ensure database connection is closed even if an error occurs
+        if 'session' in locals():
+            session.shutdown()
 
 
 class TestDatabaseOperationEndpoint(unittest.TestCase):
